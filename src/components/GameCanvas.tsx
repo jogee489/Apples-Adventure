@@ -37,6 +37,8 @@ export default function GameCanvas() {
   const [gameState, setGameState] = useState<GameState>('start');
   const [score, setScore] = useState(0);
   const scoreRef = useRef(0);
+  const [hearts, setHearts] = useState(3);
+  const heartsRef = useRef(3);
 
   type ImageElement = HTMLImageElement | HTMLCanvasElement;
   const imagesRef = useRef<{
@@ -224,6 +226,8 @@ export default function GameCanvas() {
     setGameState('playing');
     setScore(0);
     scoreRef.current = 0;
+    setHearts(3);
+    heartsRef.current = 3;
     
     // Scale up player and ground
     const player: Player = {
@@ -398,6 +402,13 @@ export default function GameCanvas() {
             player.hitTimer = 1000;
             player.vy = -8;
             player.vx = player.facingLeft ? 8 : -8;
+            heartsRef.current -= 1;
+            setHearts(heartsRef.current);
+            if (heartsRef.current <= 0) {
+              setGameState('gameover');
+              cancelAnimationFrame(rafId.current);
+              return;
+            }
           }
         }
 
@@ -543,15 +554,7 @@ export default function GameCanvas() {
         ctx.fillRect(center - 2, p.y + p.height/2 - 2, 4, 4); // Little seaweed wrap bit
       });
       
-      // UI
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.beginPath();
-      ctx.roundRect(10, 10, 140, 40, 8);
-      ctx.fill();
-      ctx.fillStyle = '#333';
-      ctx.font = '20px "JetBrains Mono", sans-serif';
-      ctx.fillText(`Score: ${scoreRef.current}`, 24, 38);
-
+      // UI removed from canvas, handled by React overly
       rafId.current = requestAnimationFrame(gameLoop);
     };
 
@@ -561,9 +564,19 @@ export default function GameCanvas() {
   return (
     <div className="flex-1 w-full h-full relative bg-blue-50 overflow-hidden" ref={containerRef}>
       {gameState === 'playing' && (
+        <div className="absolute top-4 left-4 z-20 flex flex-col md:flex-row gap-4 pointer-events-none">
+          <div className="bg-white/90 backdrop-blur shadow rounded-xl py-2 px-4 flex items-center gap-2 pointer-events-auto border border-slate-200">
+            <span className="text-xl">{'❤️'.repeat(hearts)}{'🖤'.repeat(3 - hearts)}</span>
+          </div>
+          <div className="bg-white/90 backdrop-blur shadow rounded-xl py-2 px-4 flex items-center pointer-events-auto border border-slate-200">
+             <span className="font-mono font-bold text-slate-800 text-lg">Score: {score}</span>
+          </div>
+        </div>
+      )}
+      {gameState === 'playing' && (
         <button
           onClick={(e) => { e.currentTarget.blur(); startGame(); }}
-          className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-slate-800 font-bold py-2 px-4 rounded-xl shadow backdrop-blur transition-all disabled:opacity-50"
+          className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-slate-800 font-bold py-2 px-4 rounded-xl shadow backdrop-blur transition-all pointer-events-auto border border-slate-200"
         >
           Reset Game
         </button>
@@ -587,6 +600,26 @@ export default function GameCanvas() {
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2"
             >
               Play Demo
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {gameState === 'gameover' && (
+        <div className="absolute inset-0 bg-slate-900/80 z-30 flex flex-col items-center justify-center p-8 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center flex flex-col items-center gap-6">
+            <h2 className="text-4xl font-bold text-red-500">Game Over!</h2>
+            <p className="text-slate-600">Apple succumbed to the bread monsters.</p>
+            <div className="bg-slate-50 p-4 w-full rounded-xl border border-slate-100 flex flex-col items-center">
+              <span className="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Final Score</span>
+              <span className="text-4xl font-black text-slate-800 font-mono">{score}</span>
+            </div>
+            
+            <button 
+              onClick={startGame}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all"
+            >
+              Play Again
             </button>
           </div>
         </div>
