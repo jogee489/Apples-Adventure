@@ -1,0 +1,6 @@
+{
+  "name": "Apple's Bread Mountain Adventure",
+  "description": "A soft storybook pixel art platformer starring Apple the Panda fighting her way up Bread Mountain.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
